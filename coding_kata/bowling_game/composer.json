@@ -1,0 +1,13 @@
+{
+    "autoload": {
+        "psr-4": {
+            "BowlingGame\\": [
+                "src",
+                "tests"
+            ]
+        }
+    },
+    "require": {
+        "phpunit/phpunit": "^5.1"
+    }
+}
