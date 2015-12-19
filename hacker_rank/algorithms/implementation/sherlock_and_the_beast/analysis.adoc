@@ -1,0 +1,5 @@
+= Analysis Of Sherlock And The Beast Challenge
+
+* Every 5 in the largest decent number, comes before every 3.
+* If N is divisible by 3, then decent number contains N 5s.
+* If N is divisible by 5, but not by 3, then decent number contains N 3s.
