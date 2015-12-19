@@ -130,7 +130,7 @@ class BowlingGameTest extends \PHPUnit_Framework_TestCase
      * Every roll is a "strike", which means twelve rolls are made, one for
      * each frame, and two extra rolls to supply bonus points for the tenth
      * roll. The eleventh and twelfth rolls count only once. Each frame will be
-     * worht thirty points.
+     * worth thirty points.
      *
      *   TOTAL: 30 x 10 = 300
      *
