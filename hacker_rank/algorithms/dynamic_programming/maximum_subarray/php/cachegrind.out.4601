@@ -1,0 +1,103 @@
+version: 1
+creator: xdebug 2.3.3
+cmd: /home/geoffrey/src/programming_challenges/hacker_rank/algorithms/dynamic_programming/maximum_subarray/php/solution.php
+part: 1
+positions: line
+
+events: Time
+
+fl=(1) php:internal
+fn=(1) php::fopen
+3 15
+
+fl=(1)
+fn=(2) php::fscanf
+4 17143790
+
+fl=(1)
+fn=(2)
+7 28913197
+
+fl=(1)
+fn=(3) php::fgets
+8 1831129
+
+fl=(1)
+fn=(4) php::explode
+8 8
+
+fl=(1)
+fn=(5) php::trim
+8 1
+
+fl=(1)
+fn=(5)
+8 0
+
+fl=(1)
+fn=(5)
+8 0
+
+fl=(1)
+fn=(5)
+8 0
+
+fl=(1)
+fn=(6) php::array_map
+8 77
+cfl=(1)
+cfn=(5)
+calls=1 0 0
+8 1
+cfl=(1)
+cfn=(5)
+calls=1 0 0
+8 0
+cfl=(1)
+cfn=(5)
+calls=1 0 0
+8 0
+cfl=(1)
+cfn=(5)
+calls=1 0 0
+8 0
+
+fl=(1)
+fn=(7) php::array_sum
+21 2
+
+fl=(2) /home/geoffrey/src/programming_challenges/hacker_rank/algorithms/dynamic_programming/maximum_subarray/php/solution.php
+fn=(8) {main}
+
+summary: 47888805
+
+1 581
+cfl=(1)
+cfn=(1)
+calls=1 0 0
+3 15
+cfl=(1)
+cfn=(2)
+calls=1 0 0
+4 17143790
+cfl=(1)
+cfn=(2)
+calls=1 0 0
+7 28913197
+cfl=(1)
+cfn=(3)
+calls=1 0 0
+8 1831129
+cfl=(1)
+cfn=(4)
+calls=1 0 0
+8 8
+cfl=(1)
+cfn=(6)
+calls=1 0 0
+8 80
+cfl=(1)
+cfn=(7)
+calls=1 0 0
+21 2
+
