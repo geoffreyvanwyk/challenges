@@ -5,58 +5,47 @@ fscanf($fh, '%d', $testCases);
 
 for ($counter = 1; $counter <= $testCases; $counter++) {
     fscanf($fh, '%d', $arraySize);
-    $array = array_map('trim', explode(' ', fgets($fh)));
-    $contiguous = null;
-    $noncontiguous = null;
-    $allNonNegative = true;
+    $array = explode(' ', fgets($fh));
+    $array[count($array) - 1] = rtrim($array[count($array) - 1]);
 
-    foreach ($array as $number) {
-        if ($number < 0) {
-            $allNonNegative = false;
-            break;
-        }
+    echo contiguous($array) . ' ' . noncontiguous($array) . PHP_EOL;
+}
+
+function greater($a, $b) {
+    if ($a >= $b) {
+        return $a;
     }
 
-    if ($allNonNegative) {
-        $contiguous = array_sum($array);
-        $noncontiguous = $contiguous;
-    } else {
-        $allNegative = true;
+    return $b;
+}
 
-        foreach ($array as $number) {
-            if ($number >= 0) {
-                $allNegative = false;
-                break;
-            }
-        }
+function greatest($array) {
+    sort($array);
+    return array_reverse($array)[0];
+}
 
-        if ($allNegative) {
-            sort($array);
-            $contiguous = array_reverse($array)[0];
-            $noncontiguous = $contiguous;
-        } else {
-            $subSums = [];
+function noncontiguous($array) {
+    $noncontiguous = array_sum(array_filter($array, function ($number) {
+        return $number > 0;
+    }));
 
-            for ($offset = 0; $offset < $arraySize; $offset++) {
-                for ($length = 1; $length <= $arraySize - $offset; $length++) {
-                    if (isset($subSums[$offset][$length - 1])) {
-                        $subSum = $subSums[$offset][$length - 1] + $array[$offset + $length - 1];
-                    } else {
-                        $subSum = array_sum(array_slice($array, $offset, $length));
-                        $subSums[$offset][$length] = $subSum;
-                    }
+    $allNegativeOrAllZero = $noncontiguous === 0;
 
-                    if ($contiguous < $subSum) {
-                        $contiguous = $subSum;
-                    }
-                }
-
-                if ($array[$offset] > 0) {
-                    $noncontiguous += $array[$offset];
-                }
-            }
-        }
+    if ($allNegativeOrAllZero) {
+        return greatest($array);
     }
 
-    echo "$contiguous $noncontiguous \n";
+    return $noncontiguous;
+}
+
+function contiguous($array) {
+    $maxUpToIndex = $array[0];
+    $contiguous = $maxUpToIndex;
+
+    for ($i = 1; $i < count($array); $i++) {
+        $maxUpToIndex = greater($array[$i], $maxUpToIndex + $array[$i]);
+        $contiguous = greater($contiguous, $maxUpToIndex);
+    }
+
+    return $contiguous;
 }
