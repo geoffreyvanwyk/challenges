@@ -254,14 +254,14 @@ class Snake {
      * @return Snake
      */
     private function setStart($start) {
-        if (is_int($start) and $start >= 11 and $start <= 99) {
+        if (is_int($start) and $start >= self::MIN_END and $start <= self::MAX_END) {
             $this->start = $start;
             return $this;
         }
 
         throw new InvalidArgumentException('
-            First argument must be an integer greater than or equal to 11, and
-            less than or equal to 99.
+            First argument must be an integer greater than or equal to
+            {${Snake::MIN_END}}, and less than or equal to {${Snake::MAX_END}}.
         ');
     }
 
