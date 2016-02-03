@@ -1,5 +1,34 @@
 <?php
 
+if (PHP_SAPI === 'cli') {
+    $fh = fopen('php://stdin', 'r');
+    fscanf($fh, "%d", $testCases);
+
+    for ($a = 1; $a <= $testCases; $a++) {
+        fscanf($fh, "%d", $ladderCount);
+        $ladders = [];
+
+        for ($b = 1; $b <= $ladderCount; $b++) {
+            fscanf($fh, "%d %d", $start, $end);
+            $ladders[] = new Ladder($start, $end);
+        }
+
+        fscanf($fh, "%d", $snakeCount);
+        $snakes = [];
+
+        for ($c = 1; $c <= $snakeCount; $c++) {
+            fscanf($fh, "%d %d", $start, $end);
+            $snakes[] = new Snake($start, $end);
+        }
+
+        $board = new Board($ladders, $snakes);
+    }
+}
+
+/**
+ * Responsible for finding the minimum number of dice-rolls to get from square 1
+ * to square 100.
+ */
 class Board {
     /**
      * @var int MIN_LADDERS Minimum number of ladders on a board.
