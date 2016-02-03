@@ -83,11 +83,11 @@ class Board {
     private function validate() {
         foreach ($this->ladders as $ladder) {
             foreach ($this->snakes as $snake) {
-                if ($ladder->start === $snake->start or
-                    $ladder->start === $snake->end or
-                    $ladder->end === $snake->start or
-                    $ladder->end === $snake->end
-                ) {
+                if ($ladder->start() === $snake->start() or
+                    $ladder->start() === $snake->end() or
+                    $ladder->end() === $snake->start() or
+                    $ladder->end() === $snake->end()
+                ){
                     throw new InvalidArgumentException('
                         A ladder cannot start or end at the same square where a
                         snake starts of ends.
