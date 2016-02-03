@@ -115,6 +115,10 @@ class Board {
     }
 }
 
+/**
+ * Responsible for representing valid start and end squares for a ladder on the
+ * board.
+ */
 class Ladder {
     /**
      * @var int MIN_START Minimum square where a ladder can start.
@@ -228,6 +232,10 @@ class Ladder {
     }
 }
 
+/**
+ * Responsible for representing valid start and end squares for a snake on the
+ * board.
+ */
 class Snake {
     /**
      * @var int MIN_START Minimum square where a snake can start.
