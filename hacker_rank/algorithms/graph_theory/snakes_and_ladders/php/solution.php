@@ -14,7 +14,7 @@ class Board {
 
     /**
      * @var Ladder[] $ladders All the ladders on the board.
-     * @var Snakes[] $snakes  All the snakes on the board.
+     * @var Snake[] $snakes  All the snakes on the board.
      */
     private $ladders;
     private $snakes;
@@ -67,7 +67,9 @@ class Board {
 
         foreach ($snakes as $snake) {
             if (! is_object($snake) or ! get_class($snake) === 'Snake') {
-                throw new InvalidArgumentException('First argument must be an array of Snake objects.');
+                throw new InvalidArgumentException('
+                    First argument must be an array of Snake objects.
+                ');
             }
         }
 
@@ -90,7 +92,7 @@ class Board {
                 ){
                     throw new InvalidArgumentException('
                         A ladder cannot start or end at the same square where a
-                        snake starts of ends.
+                        snake starts or ends.
                     ');
                 }
             }
