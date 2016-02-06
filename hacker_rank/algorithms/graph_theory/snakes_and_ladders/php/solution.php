@@ -10,16 +10,16 @@ if (PHP_SAPI === 'cli') {
         $ladders = [];
 
         for ($b = 1; $b <= $ladderCount; $b++) {
-            fscanf($fh, "%d %d", $start, $end);
-            $ladders[] = new Ladder($start, $end);
+            fscanf($fh, "%d %d", $bottom, $top);
+            $ladders[] = new Ladder($bottom, $top);
         }
 
         fscanf($fh, "%d", $snakeCount);
         $snakes = [];
 
         for ($c = 1; $c <= $snakeCount; $c++) {
-            fscanf($fh, "%d %d", $start, $end);
-            $snakes[] = new Snake($start, $end);
+            fscanf($fh, "%d %d", $mouth, $tail);
+            $snakes[] = new Snake($mouth, $tail);
         }
 
         $board = new Board($ladders, $snakes);
@@ -45,7 +45,7 @@ class Board
 
     /**
      * @var Ladder[] $ladders All the ladders on the board.
-     * @var Snake[] $snakes  All the snakes on the board.
+     * @var Snake[]  $snakes  All the snakes on the board.
      */
     private $ladders;
     private $snakes;
@@ -53,7 +53,7 @@ class Board
     /**
      * Setter for Board::ladders.
      *
-     * @param Ladder[] All the ladders on the board.
+     * @param Ladder[] $ladders All the ladders on the board.
      *
      * @return Board
      */
@@ -82,7 +82,7 @@ class Board
     /**
      * Setter for Board::snakes.
      *
-     * @param Snakes[] All the snakes on the board.
+     * @param Snakes[] $snakes All the snakes on the board.
      *
      * @return Board
      */
@@ -111,7 +111,7 @@ class Board
     }
 
     /**
-     * Validates that a ladder does not start or end where a snake start or stops.
+     * Validates that a ladder does not start or end where a snake starts or stops.
      *
      * @return Board
      */
@@ -119,10 +119,10 @@ class Board
     {
         foreach ($this->ladders as $ladder) {
             foreach ($this->snakes as $snake) {
-                if ($ladder->start() === $snake->start() or
-                    $ladder->start() === $snake->end() or
-                    $ladder->end() === $snake->start() or
-                    $ladder->end() === $snake->end()
+                if ($ladder->bottom() === $snake->mouth() or
+                    $ladder->bottom() === $snake->tail() or
+                    $ladder->top() === $snake->mouth() or
+                    $ladder->top() === $snake->tail()
                 ) {
                     throw new InvalidArgumentException('
                         A ladder cannot start or end at the same square where a
@@ -138,8 +138,8 @@ class Board
     /**
      * Initialises and validates all Board attributes.
      *
-     * @param Ladder[] All the ladders on the board.
-     * @param Snakes[] All the snakes on the board.
+     * @param Ladder[] $ladders All the ladders on the board.
+     * @param Snakes[] $snakes  All the snakes on the board.
      *
      * @return void
      */
@@ -159,61 +159,63 @@ class Board
 class Ladder
 {
     /**
-     * @var int MIN_START Minimum square where a ladder can start.
-     * @var int MAX_START Maximum square where a ladder can start.
-     * @var int MIN_END Minimum square where a ladder can end.
-     * @var int MAX_END Maximum square where a ladder can end.
+     * @var int MIN_BOTTOM Minimum square where a ladder can start.
+     * @var int MAX_BOTTOM Maximum square where a ladder can start.
+     * @var int MIN_TOP    Minimum square where a ladder can end.
+     * @var int MAX_TOP    Maximum square where a ladder can end.
      */
-    const MIN_START = 2;
-    const MAX_START = 90;
-    const MIN_END = 11;
-    const MAX_END = 99;
+    const MIN_BOTTOM = 2;
+    const MAX_BOTTOM = 90;
+    const MIN_TOP = 11;
+    const MAX_TOP = 99;
 
     /**
-     * @var int $start Number of the square where the ladder starts.
-     * @var int $end   Number of the square where the ladder ends.
+     * @var int $bottom Number of the square where the ladder starts.
+     * @var int $top    Number of the square where the ladder ends.
      */
-    private $start;
-    private $end;
+    private $bottom;
+    private $top;
 
     /**
-     * Setter for Ladder::start.
-
-     * @param int $start Number of the square where the ladder starts.
+     * Setter for Ladder::bottom.
+     *
+     * @param int $bottom Number of the square where the ladder starts.
+     *
      * @throws InvalidArgumentException
      * @return Ladder
      */
-    private function setStart($start)
+    private function setBottom($bottom)
     {
-        if (is_int($start) and
-            $start >= self::MIN_START and
-            $start <= self::MAX_START
+        if (is_int($bottom) and
+            $bottom >= self::MIN_BOTTOM and
+            $bottom <= self::MAX_BOTTOM
         ) {
-            $this->start = $start;
+            $this->bottom = $bottom;
             return $this;
         }
 
         throw new InvalidArgumentException('
             First argument must be an integer greater than or equal to
-            {${Ladder::MIN_START}}, and less than or equal to
-            {${Ladder::MAX_START}}.
+            {${Ladder::MIN_BOTTOM}}, and less than or equal to
+            {${Ladder::MAX_BOTTOM}}.
         ');
     }
 
     /**
-     * Setter for Ladder::end.
+     * Setter for Ladder::top.
      *
-     * @param int $end Number of the square where the ladder ends.
+     * @param int $top Number of the square where the ladder ends.
+     *
      * @throws InvalidArgumentException
      * @return Ladder
      */
-    private function setEnd($end)
+    private function setTop($top)
     {
-        if (is_int($end) and
-            $end >= self::MIN_END and
-            $end <= self::MAX_END
+        if (is_int($top) and
+            $top >= self::MIN_TOP and
+            $top <= self::MAX_TOP
         ) {
-            $this->end = $end;
+            $this->top = $top;
             return $this;
         }
 
@@ -225,15 +227,15 @@ class Ladder
     }
 
     /**
-     * Validates that the ladder starts at a square with a smaller number than the
-     * square where it ends.
+     * Validates that the ladder's bottom is at a square with a smaller number than the
+     * square where its top is..
      *
      * @throws InvalidArgumentException
      * @return Ladder
      */
     private function validate()
     {
-        if ($this->start < $this->end) {
+        if ($this->bottom < $this->top) {
             return $this;
         }
 
@@ -245,34 +247,37 @@ class Ladder
     /**
      * Initialises and validates all Ladder attributes.
      *
+     * @param int $bottom Number of square where ladder starts.
+     * @param int $top    Number of square where ladder ends.
+     *
      * @return void
      */
-    public function __construct($start, $end)
+    public function __construct($bottom, $top)
     {
         $this
-            ->setStart($start)
-            ->setEnd($end)
+            ->setBottom($bottom)
+            ->setTop($top)
             ->validate();
     }
 
     /**
-     * Getter for Ladder::start.
+     * Getter for Ladder::bottom.
      *
      * @return int
      */
-    public function start()
+    public function bottom()
     {
-        return $this->start;
+        return $this->bottom;
     }
 
     /**
-     * Getter for Ladder::end.
+     * Getter for Ladder::top.
      *
      * @return int
      */
-    public function end()
+    public function top()
     {
-        return $this->end;
+        return $this->top;
     }
 }
 
@@ -283,71 +288,71 @@ class Ladder
 class Snake
 {
     /**
-     * @var int MIN_START Minimum square where a snake can start.
-     * @var int MAX_START Maximum square where a snake can start.
-     * @var int MIN_END Minimum square where a snake can end.
-     * @var int MAX_END Maximum square where a snake can end.
+     * @var int MIN_MOUTH Minimum square where a snake can start.
+     * @var int MAX_MOUTH Maximum square where a snake can start.
+     * @var int MIN_TAIL Minimum square where a snake can end.
+     * @var int MAX_TAIL Maximum square where a snake can end.
      */
-    const MIN_START = 2;
-    const MAX_START = 90;
-    const MIN_END = 11;
-    const MAX_END = 99;
+    const MIN_MOUTH = 11;
+    const MAX_MOUTH = 99;
+    const MIN_TAIL = 2;
+    const MAX_TAIL = 90;
 
     /**
-     * @var int Number of the square where the snake starts.
-     * @var int $end Number of the square where the snake ends.
+     * @var int $mouth Number of the square where the snake starts.
+     * @var int $tail  Number of the square where the snake ends.
      */
-    private $start;
-    private $end;
+    private $mouth;
+    private $tail;
 
     /**
-     * Setter for Snake::start.
+     * Setter for Snake::mouth.
      *
      * @throws InvalidArgumentException
      * @return Snake
      */
-    private function setStart($start)
+    private function setMouth($mouth)
     {
-        if (is_int($start) and $start >= self::MIN_END and $start <= self::MAX_END) {
-            $this->start = $start;
+        if (is_int($mouth) and $mouth >= self::MIN_MOUTH and $mouth <= self::MAX_MOUTH) {
+            $this->mouth = $mouth;
             return $this;
         }
 
         throw new InvalidArgumentException('
             First argument must be an integer greater than or equal to
-            {${Snake::MIN_END}}, and less than or equal to {${Snake::MAX_END}}.
+            {${Snake::MIN_MOUTH}}, and less than or equal to {${Snake::MAX_MOUTH}}.
         ');
     }
 
     /**
-     * Setter for Snake::end.
+     * Setter for Snake::tail.
      *
      * @throws InvalidArgumentException
      * @return Snake
      */
-    private function setEnd($end)
+    private function setTail($tail)
     {
-        if (is_int($end) and $end >= 2 and $end <= 90) {
-            $this->end = $end;
+        if (is_int($tail) and $tail >= MIN_TAIL and $tail <= MAX_TAIL) {
+            $this->tail = $tail;
             return $this;
         }
 
         throw new InvalidArgumentException('
-            Second argument must be an integer greater than or equal to 2, and
-            less than or equal to 90.
+            Second argument must be an integer greater than or equal to
+            {${Snake::MIN_TAIL}} and less than or equal to {${Snake::MAX_TAIL}}.
         ');
     }
 
     /**
-     * Validates that the snake starts at a square with a larger number than the
-     * square where it ends.
+     * Validates that the snake's mouth is at a square with a larger number than the
+     * square where its tail is.
      *
      * @throws InvalidArgumentException
      * @return Snake
      */
     private function validate()
     {
-        if ($this->start > $this->end) {
+        if ($this->mouth > $this->tail) {
             return $this;
         }
 
@@ -362,31 +367,31 @@ class Snake
      *
      * @return void
      */
-    public function __construct($start, $end)
+    public function __construct($mouth, $tail)
     {
         $this
-            ->setStart($start)
-            ->setEnd($end)
+            ->setMouth($mouth)
+            ->setTail($tail)
             ->validate();
     }
 
     /**
-     * Getter for Snake::start.
+     * Getter for Snake::mouth.
      *
      * @return int
      */
-    public function start()
+    public function mouth()
     {
-        return $this->start;
+        return $this->mouth;
     }
 
     /**
-     * Getter for Snake::end.
+     * Getter for Snake::tail.
      *
      * @return int
      */
-    public function end()
+    public function tail()
     {
-        return $this->end;
+        return $this->tail;
     }
 }
