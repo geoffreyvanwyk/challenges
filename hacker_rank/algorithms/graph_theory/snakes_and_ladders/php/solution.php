@@ -1,4 +1,5 @@
 <?php
+namespace Systemovich;
 
 if (PHP_SAPI === 'cli') {
     $fh = fopen('php://stdin', 'r');
@@ -29,7 +30,8 @@ if (PHP_SAPI === 'cli') {
  * Responsible for finding the minimum number of dice-rolls to get from square 1
  * to square 100.
  */
-class Board {
+class Board
+{
     /**
      * @var int MIN_LADDERS Minimum number of ladders on a board.
      * @var int MAX_LADDERS Maximum number of ladders on a board.
@@ -55,7 +57,8 @@ class Board {
      *
      * @return Board
      */
-    private function setLadders(array $ladders) {
+    private function setLadders(array $ladders)
+    {
         $ladderCount = count($ladders);
 
         if ($ladderCount < self::MIN_LADDERS or $ladderCount > self::MAX_LADDERS) {
@@ -83,7 +86,8 @@ class Board {
      *
      * @return Board
      */
-    private function setSnakes(array $snakes) {
+    private function setSnakes(array $snakes)
+    {
         $snakeCount = count($snakes);
 
         if ($snakeCount < self::MIN_SNAKES or $snakeCount > self::MAX_SNAKES) {
@@ -111,14 +115,15 @@ class Board {
      *
      * @return Board
      */
-    private function validate() {
+    private function validate()
+    {
         foreach ($this->ladders as $ladder) {
             foreach ($this->snakes as $snake) {
                 if ($ladder->start() === $snake->start() or
                     $ladder->start() === $snake->end() or
                     $ladder->end() === $snake->start() or
                     $ladder->end() === $snake->end()
-                ){
+                ) {
                     throw new InvalidArgumentException('
                         A ladder cannot start or end at the same square where a
                         snake starts or ends.
@@ -138,7 +143,8 @@ class Board {
      *
      * @return void
      */
-    public function __construct(array $ladders, array $snakes) {
+    public function __construct(array $ladders, array $snakes)
+    {
         $this
             ->setLadders($ladders)
             ->setSnakes($snakes)
@@ -150,7 +156,8 @@ class Board {
  * Responsible for representing valid start and end squares for a ladder on the
  * board.
  */
-class Ladder {
+class Ladder
+{
     /**
      * @var int MIN_START Minimum square where a ladder can start.
      * @var int MAX_START Maximum square where a ladder can start.
@@ -176,11 +183,12 @@ class Ladder {
      * @throws InvalidArgumentException
      * @return Ladder
      */
-    private function setStart($start) {
+    private function setStart($start)
+    {
         if (is_int($start) and
             $start >= self::MIN_START and
             $start <= self::MAX_START
-        ){
+        ) {
             $this->start = $start;
             return $this;
         }
@@ -199,11 +207,12 @@ class Ladder {
      * @throws InvalidArgumentException
      * @return Ladder
      */
-    private function setEnd($end) {
+    private function setEnd($end)
+    {
         if (is_int($end) and
             $end >= self::MIN_END and
             $end <= self::MAX_END
-        ){
+        ) {
             $this->end = $end;
             return $this;
         }
@@ -222,7 +231,8 @@ class Ladder {
      * @throws InvalidArgumentException
      * @return Ladder
      */
-    private function validate() {
+    private function validate()
+    {
         if ($this->start < $this->end) {
             return $this;
         }
@@ -237,7 +247,8 @@ class Ladder {
      *
      * @return void
      */
-    public function __construct($start, $end) {
+    public function __construct($start, $end)
+    {
         $this
             ->setStart($start)
             ->setEnd($end)
@@ -249,7 +260,8 @@ class Ladder {
      *
      * @return int
      */
-    public function start() {
+    public function start()
+    {
         return $this->start;
     }
 
@@ -258,7 +270,8 @@ class Ladder {
      *
      * @return int
      */
-    public function end() {
+    public function end()
+    {
         return $this->end;
     }
 }
@@ -267,7 +280,8 @@ class Ladder {
  * Responsible for representing valid start and end squares for a snake on the
  * board.
  */
-class Snake {
+class Snake
+{
     /**
      * @var int MIN_START Minimum square where a snake can start.
      * @var int MAX_START Maximum square where a snake can start.
@@ -292,7 +306,8 @@ class Snake {
      * @throws InvalidArgumentException
      * @return Snake
      */
-    private function setStart($start) {
+    private function setStart($start)
+    {
         if (is_int($start) and $start >= self::MIN_END and $start <= self::MAX_END) {
             $this->start = $start;
             return $this;
@@ -310,7 +325,8 @@ class Snake {
      * @throws InvalidArgumentException
      * @return Snake
      */
-    private function setEnd($end) {
+    private function setEnd($end)
+    {
         if (is_int($end) and $end >= 2 and $end <= 90) {
             $this->end = $end;
             return $this;
@@ -329,7 +345,8 @@ class Snake {
      * @throws InvalidArgumentException
      * @return Snake
      */
-    private function validate() {
+    private function validate()
+    {
         if ($this->start > $this->end) {
             return $this;
         }
@@ -345,7 +362,8 @@ class Snake {
      *
      * @return void
      */
-    public function __construct($start, $end) {
+    public function __construct($start, $end)
+    {
         $this
             ->setStart($start)
             ->setEnd($end)
@@ -357,7 +375,8 @@ class Snake {
      *
      * @return int
      */
-    public function start() {
+    public function start()
+    {
         return $this->start;
     }
 
@@ -366,7 +385,8 @@ class Snake {
      *
      * @return int
      */
-    public function end() {
+    public function end()
+    {
         return $this->end;
     }
 }
