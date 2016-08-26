@@ -23,6 +23,7 @@ if (PHP_SAPI === 'cli') {
         }
 
         $board = new Board($ladders, $snakes);
+        echo $board->minimumDiceRolls() . PHP_EOL;
     }
 }
 
@@ -33,10 +34,17 @@ if (PHP_SAPI === 'cli') {
 class Board
 {
     /**
-     * @var int MIN_LADDERS Minimum number of ladders on a board.
-     * @var int MAX_LADDERS Maximum number of ladders on a board.
-     * @var int MIN_SNAKES Minimum number of snakes on a board.
-     * @var int MAX_SNAKES Maximum number of snakes on a board.
+     * const int MIN_POSITION Lowest number of a square on the board.
+     * const int MAX_POSITION Highest number of a square on the board.
+     */
+    const MIN_POSITION = 1;
+    const MAX_POSITION = 100;
+
+    /**
+     * @const int MIN_LADDERS Minimum number of ladders on a board.
+     * @const int MAX_LADDERS Maximum number of ladders on a board.
+     * @const int MIN_SNAKES Minimum number of snakes on a board.
+     * @const int MAX_SNAKES Maximum number of snakes on a board.
      */
     const MIN_LADDERS = 1;
     const MAX_LADDERS = 15;
@@ -44,11 +52,26 @@ class Board
     const MAX_SNAKES = 15;
 
     /**
+     * @const int MIN_DICE Minimum value of a dice roll.
+     * @const int MAX_DICE Maximum value of a dice roll.
+     */
+    const MIN_DICE = 1;
+    const MAX_DICE = 6;
+
+    /**
      * @var Ladder[] $ladders All the ladders on the board.
      * @var Snake[]  $snakes  All the snakes on the board.
      */
     private $ladders;
     private $snakes;
+
+
+    /**
+     * Successive squares occupied by game piece after every dice roll.
+     *
+     * @var int[]
+     */
+    private $positions = [self::MIN_POSITION];
 
     /**
      * Setter for Board::ladders.
@@ -61,17 +84,22 @@ class Board
     {
         $ladderCount = count($ladders);
 
-        if ($ladderCount < self::MIN_LADDERS or $ladderCount > self::MAX_LADDERS) {
-            throw new InValidArgumentException("
-                Number of ladders must be greater than or equal to
-                {${Board::MIN_LADDERS}}, and less than or equal to
-                {${Board::MAX_LADDERS}}.
-            ");
+        if ($ladderCount < self::MIN_LADDERS or
+            $ladderCount > self::MAX_LADDERS
+        ) {
+            throw new InValidArgumentException(
+                'Number of ladders must be greater than or equal to ' .
+                self::MIN_LADDERS . ', and less than or equal to ' .
+                self::MAX_LADDERS . '. Number of ladders given: ' .
+                $ladderCount . '.'
+            );
         }
 
         foreach ($ladders as $ladder) {
             if (! is_object($ladder) or ! get_class($ladder) === 'Ladder') {
-                throw new InvalidArgumentException('First argument must be an array of Ladder objects.');
+                throw new \InvalidArgumentException(
+                    'First argument must be an array of Ladder objects.'
+                );
             }
         }
 
@@ -91,16 +119,17 @@ class Board
         $snakeCount = count($snakes);
 
         if ($snakeCount < self::MIN_SNAKES or $snakeCount > self::MAX_SNAKES) {
-            throw new InValidArgumentException("
-                Number of snakes must be greater than or equal to
-                {${Board::MIN_SNAKES}}, and less than or equal to
-                {${Board::MAX_SNAKES}}.
-            ");
+            throw new InValidArgumentException(
+                'Number of snakes must be greater than or equal to ' .
+                self::MIN_SNAKES . ', and less than or equal to ' .
+                self::MAX_SNAKES . '. Number of snakes give: ' .
+                $snakeCount . '.'
+            );
         }
 
         foreach ($snakes as $snake) {
             if (! is_object($snake) or ! get_class($snake) === 'Snake') {
-                throw new InvalidArgumentException('
+                throw new \InvalidArgumentException('
                     First argument must be an array of Snake objects.
                 ');
             }
@@ -111,7 +140,8 @@ class Board
     }
 
     /**
-     * Validates that a ladder does not start or end where a snake starts or stops.
+     * Validates that a ladder does not start or end where a snake starts or
+     * stops.
      *
      * @return Board
      */
@@ -124,7 +154,7 @@ class Board
                     $ladder->top() === $snake->mouth() or
                     $ladder->top() === $snake->tail()
                 ) {
-                    throw new InvalidArgumentException('
+                    throw new \InvalidArgumentException('
                         A ladder cannot start or end at the same square where a
                         snake starts or ends.
                     ');
@@ -145,10 +175,132 @@ class Board
      */
     public function __construct(array $ladders, array $snakes)
     {
-        $this
-            ->setLadders($ladders)
-            ->setSnakes($snakes)
-            ->validate();
+        $this->setLadders($ladders)
+             ->setSnakes($snakes)
+             ->validate()
+             ->play();
+    }
+
+    /**
+     * Number of square on which game piece currently sits.
+     *
+     * @return int
+     */
+    private function position()
+    {
+        return $this->positions[count($this->positions) - 1];
+    }
+
+    /**
+     * Ladder whose bottom is the farthest from the game piece, of all the ladders
+     * whose bottoms are no more than six squares away from the game piece..
+     *
+     * @param int $position Position of game piece.
+     *
+     * @return Ladder|null
+     */
+    private function nextLadder($position)
+    {
+        static $ladders = [];
+
+        if (isset($ladders[$position])) {
+            return $ladders[$position];
+        }
+
+        $maxDistance = null;
+        $nearest = null;
+
+        foreach ($this->ladders as $ladder) {
+            $distance = $ladder->b9ottom() - $this->position();
+
+            if ($distance >= self::MIN_DICE  and
+                $distance <= self::MAX_DICE
+            ) {
+                if (is_null($maxDistance) or $distance > $maxDistance) {
+                    $maxDistance = $distance;
+                    $nearest = $ladder;
+                }
+            }
+        }
+
+        $ladders[$position] = $nearest;
+
+        return $nearest;
+    }
+
+    /**
+     * Returns true if there is a Snake exactly 6 squares ahead of the game
+     * piece.
+     *
+     * @param int $position Position of game piece.
+     *
+     * @return bool
+     */
+    private function isSnakeAhead($position)
+    {
+        static $results = [];
+
+        if (isset($results[$position])) {
+            return $results[$position];
+        }
+
+        foreach ($this->snakes as $snake) {
+            $distance = $snake->mouth() - $this->position();
+
+            if ($distance === self::MAX_DICE) {
+                $results[$position] = true;
+                return true;
+            }
+        }
+
+        $results[$position] = false;
+
+        return false;
+    }
+
+    /**
+     * Moves the game piece to a new position while obeying the rules.
+     *
+     * @return void
+     */
+    private function rollDice()
+    {
+        if ($this->nextLadder($this->position())) {
+            $this->positions[] = $this->nextLadder($this->position())->top();
+        } elseif ($this->isSnakeAhead($this->position())) {
+            $this->positions[] = $this->position() + self::MAX_DICE - 1;
+        } elseif (self::MAX_POSITION - $this->position() <= self::MAX_DICE) {
+            $this->positions[] = self::MAX_POSITION;
+        } else {
+            $this->positions[] = $this->position() + self::MAX_DICE;
+        }
+    }
+
+    /**
+     * Moves the game piece to the last square.
+     *
+     * @return void
+     */
+    private function play()
+    {
+        while ($this->position() < self::MAX_POSITION) {
+            $this->rollDice();
+        }
+    }
+
+    /**
+     * Minimum number of dice rolls required to move game piece from square 1 to
+     * square 100.
+     *
+     * @return int
+     */
+    public function minimumDiceRolls()
+    {
+        /* Every position, except the first, was reached as a result of a dice
+         * roll; therefore, the number of dice rolls equal the number of
+         * positions minus one.
+         */
+        return count($this->positions) - 1;
     }
 }
 
@@ -167,7 +319,7 @@ class Ladder
     const MIN_BOTTOM = 2;
     const MAX_BOTTOM = 90;
     const MIN_TOP = 11;
-    const MAX_TOP = 99;
+    const MAX_TOP = 100;
 
     /**
      * @var int $bottom Number of the square where the ladder starts.
@@ -181,7 +333,7 @@ class Ladder
      *
      * @param int $bottom Number of the square where the ladder starts.
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Ladder
      */
     private function setBottom($bottom)
@@ -194,11 +346,11 @@ class Ladder
             return $this;
         }
 
-        throw new InvalidArgumentException('
-            First argument must be an integer greater than or equal to
-            {${Ladder::MIN_BOTTOM}}, and less than or equal to
-            {${Ladder::MAX_BOTTOM}}.
-        ');
+        throw new \InvalidArgumentException(
+            'First argument must be an integer greater than or equal to ' .
+            self::MIN_BOTTOM . ', and less than or equal to ' .
+            self::MAX_BOTTOM . '. Argument given: ' . $bottom . '.'
+        );
     }
 
     /**
@@ -206,7 +358,7 @@ class Ladder
      *
      * @param int $top Number of the square where the ladder ends.
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Ladder
      */
     private function setTop($top)
@@ -219,18 +371,18 @@ class Ladder
             return $this;
         }
 
-        throw new InvalidArgumentException('
-            Second argument must be an integer greater than or equal to
-            {${Ladder::MIN_END}}, and less than or equal to
-            {${Ladder::MAX_END}}.
-        ');
+        throw new \InvalidArgumentException(
+            'Second argument must be an integer greater than or equal to ' .
+            self::MIN_TOP . ', and less than or equal to ' .
+            self::MAX_TOP . '. Argument given: ' . $top . '.'
+        );
     }
 
     /**
      * Validates that the ladder's bottom is at a square with a smaller number than the
      * square where its top is..
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Ladder
      */
     private function validate()
@@ -239,7 +391,7 @@ class Ladder
             return $this;
         }
 
-        throw new InvalidArgumentException('
+        throw new \InvalidArgumentException('
             First argument must be less than second argument.
         ');
     }
@@ -254,10 +406,9 @@ class Ladder
      */
     public function __construct($bottom, $top)
     {
-        $this
-            ->setBottom($bottom)
-            ->setTop($top)
-            ->validate();
+        $this->setBottom($bottom)
+             ->setTop($top)
+             ->validate();
     }
 
     /**
@@ -295,7 +446,7 @@ class Snake
      */
     const MIN_MOUTH = 11;
     const MAX_MOUTH = 99;
-    const MIN_TAIL = 2;
+    const MIN_TAIL = 1;
     const MAX_TAIL = 90;
 
     /**
@@ -308,7 +459,7 @@ class Snake
     /**
      * Setter for Snake::mouth.
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Snake
      */
     private function setMouth($mouth)
@@ -318,36 +469,41 @@ class Snake
             return $this;
         }
 
-        throw new InvalidArgumentException('
-            First argument must be an integer greater than or equal to
-            {${Snake::MIN_MOUTH}}, and less than or equal to {${Snake::MAX_MOUTH}}.
-        ');
+        throw new \InvalidArgumentException(
+            'First argument must be an integer greater than or equal to ' .
+            self::MIN_MOUTH . ', and less than or equal to ' .
+            self::MAX_MOUTH . '. Argument given: ' . $mouth . '.'
+        );
     }
 
     /**
      * Setter for Snake::tail.
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Snake
      */
     private function setTail($tail)
     {
-        if (is_int($tail) and $tail >= MIN_TAIL and $tail <= MAX_TAIL) {
+        if (is_int($tail) and
+            $tail >= self::MIN_TAIL and
+            $tail <= self::MAX_TAIL
+        ) {
             $this->tail = $tail;
             return $this;
         }
 
-        throw new InvalidArgumentException('
-            Second argument must be an integer greater than or equal to
-            {${Snake::MIN_TAIL}} and less than or equal to {${Snake::MAX_TAIL}}.
-        ');
+        throw new \InvalidArgumentException(
+            'Second argument must be an integer greater than or equal to ' .
+            self::MIN_TAIL . ', and less than or equal to ' .
+            self::MAX_TAIL . '. Argument given: ' . $tail . '.'
+        );
     }
 
     /**
      * Validates that the snake's mouth is at a square with a larger number than the
      * square where its tail is.
      *
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      * @return Snake
      */
     private function validate()
@@ -356,7 +512,7 @@ class Snake
             return $this;
         }
 
-        throw new InvalidArgumentException('
+        throw new \InvalidArgumentException('
             First argument must be less than
             second argument.
         ');
@@ -369,10 +525,9 @@ class Snake
      */
     public function __construct($mouth, $tail)
     {
-        $this
-            ->setMouth($mouth)
-            ->setTail($tail)
-            ->validate();
+        $this->setMouth($mouth)
+             ->setTail($tail)
+             ->validate();
     }
 
     /**
